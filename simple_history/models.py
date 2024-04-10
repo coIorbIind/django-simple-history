@@ -235,7 +235,7 @@ class HistoricalRecords:
 
         for field in m2m_fields:
             m2m_model = self.create_history_m2m_model(
-                history_model, field.remote_field.through
+                history_model, field
             )
             self.m2m_models[field] = m2m_model
 
@@ -266,7 +266,8 @@ class HistoricalRecords:
             )
         )
 
-    def create_history_m2m_model(self, model, through_model):
+    def create_history_m2m_model(self, model, field):
+        through_model = field.remote_field.through
         attrs = {}
 
         fields = self.copy_fields(through_model)
@@ -274,6 +275,8 @@ class HistoricalRecords:
         attrs.update(self.get_extra_fields_m2m(model, through_model, fields))
 
         name = self.get_history_model_name(through_model)
+        if self.custom_model_name:
+            name += f'_{field.name}'
         registered_models[through_model._meta.db_table] = through_model
 
         attrs.update(Meta=type("Meta", (), self.get_meta_options_m2m(through_model)))
